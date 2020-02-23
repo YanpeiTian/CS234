@@ -12,9 +12,9 @@ import torch
 
 N=4
 SIZE=6
-N_GAMES=3
-MODEL_1='current_policy.model'
-MODEL_2='current_policy.model'
+N_GAMES=10
+MODEL_1='.model'
+MODEL_2='.model'
 
 def policy_evaluate(player1,player2,n_games=N_GAMES):
 
@@ -50,7 +50,7 @@ def run():
     mcts_player = MCTS_Pure(c_puct=5, n_playout=400)
     human=Human()
 
-    result=policy_evaluate(mcts_player,player_2)
+    result=policy_evaluate(player_1,player_2)
     print("The win ratio for "+MODEL_1+" is: ",str(100*result)+"%")
 
 
