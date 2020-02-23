@@ -52,7 +52,7 @@ def policy_evaluate(player1,player2,n_games=N_GAMES):
     for i in range(n_games):
         board = Board(width=SIZE, height=SIZE, n_in_row=N)
         game = Game(board)
-        winner = game.start_play(player1,player2,start_player=i % 2,is_shown=1)
+        winner = game.start_play(player1,player2,start_player=i % 2,is_shown=0)
         win_cnt[winner] += 1
     win_ratio = 1.0*(win_cnt[1] + 0.5*win_cnt[-1]) / n_games
 
@@ -80,8 +80,6 @@ def run():
         print ("Benchmarking the following two models:"+MODEL_1+" Human")
     else:
         print ("Benchmarking the following two models:"+MODEL_1+" "+MODEL_2)
-
-    player_1=Human()
 
     result=policy_evaluate(player_1,player_2)
     print("The win ratio for "+MODEL_1+" is: ",str(100*result)+"%")

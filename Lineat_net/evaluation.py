@@ -10,8 +10,8 @@ from collections import defaultdict
 
 import torch
 
-N=4
-SIZE=6
+N=5
+SIZE=8
 N_GAMES=10
 MODEL_1='models/iter_50.model'
 MODEL_2='models/iter_50.model'
@@ -47,12 +47,16 @@ class Human(object):
         return "Human {}".format(self.player)
 
 def policy_evaluate(player1,player2,n_games=N_GAMES):
+    if HUMAN:
+        shown=1
+    else:
+        shown=0
 
     win_cnt = defaultdict(int)
     for i in range(n_games):
         board = Board(width=SIZE, height=SIZE, n_in_row=N)
         game = Game(board)
-        winner = game.start_play(player1,player2,start_player=i % 2,is_shown=1)
+        winner = game.start_play(player1,player2,start_player=i % 2,is_shown=shown)
         win_cnt[winner] += 1
     win_ratio = 1.0*(win_cnt[1] + 0.5*win_cnt[-1]) / n_games
 
@@ -62,15 +66,15 @@ def run():
     n = N
     width, height = SIZE,SIZE
 
-    best_policy_1 = PolicyValueNet(width, height, model_file=MODEL_1)
-    player_1 = MCTSPlayer(best_policy_1.policy_value_fn,
-                             c_puct=5,
-                             n_playout=400)  # set larger n_playout for better performance
-
-    best_policy_2 = PolicyValueNet(width, height, model_file=MODEL_2)
-    player_2 = MCTSPlayer(best_policy_2.policy_value_fn,
-                             c_puct=5,
-                             n_playout=400)  # set larger n_playout for better performance
+    # best_policy_1 = PolicyValueNet(width, height, model_file=MODEL_1)
+    # player_1 = MCTSPlayer(best_policy_1.policy_value_fn,
+    #                          c_puct=5,
+    #                          n_playout=400)  # set larger n_playout for better performance
+    #
+    # best_policy_2 = PolicyValueNet(width, height, model_file=MODEL_2)
+    # player_2 = MCTSPlayer(best_policy_2.policy_value_fn,
+    #                          c_puct=5,
+    #                          n_playout=400)  # set larger n_playout for better performance
 
     if MCTS_PURE:
         player_2 = MCTS_Pure(c_puct=5, n_playout=PLAYOUT)
