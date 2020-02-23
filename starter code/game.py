@@ -1,5 +1,6 @@
 from __future__ import print_function
 import numpy as np
+from time import sleep
 
 class Board(object):
     """board for the game"""
@@ -165,6 +166,12 @@ class Game(object):
         if is_shown:
             self.graphic(self.board, player1.player, player2.player)
         while True:
+
+
+            # sleep(1)
+
+
+
             current_player = self.board.get_current_player()
             player_in_turn = players[current_player]
             move = player_in_turn.get_action(self.board)
@@ -173,11 +180,10 @@ class Game(object):
                 self.graphic(self.board, player1.player, player2.player)
             end, winner = self.board.game_end()
             if end:
-                if is_shown:
-                    if winner != -1:
-                        print("Game end. Winner is", players[winner])
-                    else:
-                        print("Game end. Tie")
+                if winner != -1:
+                    print("Game end. Winner is", players[winner])
+                else:
+                    print("Game end. Tie")
                 return winner
 
     def start_self_play(self, player, is_shown=0, temp=1e-3):

@@ -49,12 +49,12 @@ def run():
 
         # load the provided model (trained in Theano/Lasagne) into a MCTS player written in pure numpy
         try:
-            policy_param = pickle.load(open(model_file, 'rb'))
+            policy_param_1 = pickle.load(open(model_file, 'rb'))
         except:
-            policy_param = pickle.load(open(model_file, 'rb'),
+            policy_param_1 = pickle.load(open(model_file, 'rb'),
                                        encoding='bytes')  # To support python3
-        best_policy = PolicyValueNet(width, height, policy_param)
-        mcts_player = MCTSPlayer(best_policy.policy_value_fn,
+        best_policy_1 = PolicyValueNet(width, height, policy_param_1)
+        mcts_player_1 = MCTSPlayer(best_policy_1.policy_value_fn,
                                  c_puct=5,
                                  n_playout=400)  # set larger n_playout for better performance
 
@@ -65,7 +65,7 @@ def run():
         human = Human()
 
         # set start_player=0 for human first
-        game.start_play(human, mcts_player, start_player=1, is_shown=1)
+        game.start_play(human, mcts_player_1, start_player=1, is_shown=1)
     except KeyboardInterrupt:
         print('\n\rquit')
 
