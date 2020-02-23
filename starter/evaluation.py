@@ -13,9 +13,9 @@ import torch
 N=4
 SIZE=6
 N_GAMES=10
-MODEL_1='models/iter_50.model'
-MODEL_2=''
-PLAYOUT=1
+MODEL_1='models/iter_150.model'
+MODEL_2='models/iter_50.model'
+PLAYOUT=2000
 MCTS_PURE=True
 HUMAN=False
 
@@ -62,7 +62,7 @@ def run():
     n = N
     width, height = SIZE,SIZE
 
-    best_policy_1 = PolicyValueNet(width, height, model_file=MODEL_2)
+    best_policy_1 = PolicyValueNet(width, height, model_file=MODEL_1)
     player_1 = MCTSPlayer(best_policy_1.policy_value_fn,
                              c_puct=5,
                              n_playout=400)  # set larger n_playout for better performance
