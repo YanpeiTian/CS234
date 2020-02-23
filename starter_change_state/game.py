@@ -12,7 +12,8 @@ class Board(object):
         # key: move as location on the board,
         # value: player as pieces type
         self.states = {}
-        self.laststates = {}
+        self.last = {}
+        self.lastlast={}
         # need how many pieces in a row to win
         self.n_in_row = int(kwargs.get('n_in_row', 5))
         self.players = [1, 2]  # player1 and player2
@@ -58,22 +59,23 @@ class Board(object):
         square_state = np.zeros((5, self.width, self.height))
         if self.states:
             moves, players = np.array(list(zip(*self.states.items())))
-            move_curr = moves[players == self.current_player]
-            move_oppo = moves[players != self.current_player]
-            square_state[0][move_curr // self.width,
-                            move_curr % self.height] = 1.0
-            square_state[2][move_oppo // self.width,
-                            move_oppo % self.height] = 1.0
+            move_1 = moves[players == self.players[0]]
+            move_2 = moves[players == self.players[1]]
+            square_state[0][move_1 // self.width,
+                            move_1 % self.height] = 1.0
+            square_state[2][move_2 // self.width,
+                            move_2 % self.height] = 1.0
 
-            if self.laststates:
-                lastmoves, lastplayers = np.array(list(zip(*self.laststates.items())))
-                lastmove_curr = lastmoves[lastplayers == self.current_player]
-                lastmove_oppo = lastmoves[lastplayers != self.current_player]
+            if self.lastlast:
 
-                square_state[1][lastmove_curr // self.width,
-                                lastmove_curr % self.height] = 1.0
-                square_state[3][lastmove_oppo // self.width,
-                                lastmove_oppo % self.height] = 1.0
+                lastmoves, lastplayers = np.array(list(zip(*self.lastlast.items())))
+                move_1 = lastmoves[lastplayers == self.players[0]]
+                move_2 = lastmoves[lastplayers == self.players[1]]
+
+                square_state[1][move_1 // self.width,
+                                move_1 % self.height] = 1.0
+                square_state[3][move_2 // self.width,
+                                move_2 % self.height] = 1.0
 
 
             # indicate the last move location
@@ -81,12 +83,13 @@ class Board(object):
             # if (self.last_move != -1 ):
             #     square_state[2][self.last_move // self.width,
             #                     self.last_move % self.height] = 1.0
-        if len(self.states) % 2 == 0:
+        if self.current_player==self.players[1]:
             square_state[4][:, :] = 1.0  # indicate the colour to play
         return square_state[:, ::-1, :]
 
     def do_move(self, move):
-        self.laststates = self.states
+        self.lastlast = dict(self.last)
+        self.last = dict(self.states)
         self.states[move] = self.current_player
         self.availables.remove(move)
         self.current_player = (
@@ -190,6 +193,9 @@ class Game(object):
             if is_shown:
                 self.graphic(self.board, player1.player, player2.player)
             end, winner = self.board.game_end()
+
+            print(self.board.current_state())
+
             if end:
                 if winner != -1:
                     print("Game end. Winner is", players[winner])

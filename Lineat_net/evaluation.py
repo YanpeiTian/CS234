@@ -13,11 +13,11 @@ import torch
 N=5
 SIZE=8
 N_GAMES=10
-MODEL_1='models/iter_50.model'
+MODEL_1='models/best.model'
 MODEL_2='models/iter_50.model'
 PLAYOUT=1000
-MCTS_PURE=True
-HUMAN=False
+MCTS_PURE=False
+HUMAN=True
 
 class Human(object):
     """
@@ -66,11 +66,11 @@ def run():
     n = N
     width, height = SIZE,SIZE
 
-    # best_policy_1 = PolicyValueNet(width, height, model_file=MODEL_1)
-    # player_1 = MCTSPlayer(best_policy_1.policy_value_fn,
-    #                          c_puct=5,
-    #                          n_playout=400)  # set larger n_playout for better performance
-    #
+    best_policy_1 = PolicyValueNet(width, height, model_file=MODEL_1)
+    player_1 = MCTSPlayer(best_policy_1.policy_value_fn,
+                             c_puct=5,
+                             n_playout=400)  # set larger n_playout for better performance
+    
     # best_policy_2 = PolicyValueNet(width, height, model_file=MODEL_2)
     # player_2 = MCTSPlayer(best_policy_2.policy_value_fn,
     #                          c_puct=5,
@@ -84,8 +84,6 @@ def run():
         print ("Benchmarking the following two models:"+MODEL_1+" Human")
     else:
         print ("Benchmarking the following two models:"+MODEL_1+" "+MODEL_2)
-
-    player_1=Human()
 
     result=policy_evaluate(player_1,player_2)
     print("The win ratio for "+MODEL_1+" is: ",str(100*result)+"%")
