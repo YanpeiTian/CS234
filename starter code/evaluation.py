@@ -3,16 +3,18 @@ import pickle
 from game import Board, Game
 from mcts_pure import MCTSPlayer as MCTS_Pure
 from mcts_alphaZero import MCTSPlayer
-# from policy_value_net_pytorch import PolicyValueNet
-from policy_value_net_numpy import PolicyValueNetNumpy as PolicyValueNet
+from policy_value_net_pytorch import PolicyValueNet, Net
+# from policy_value_net_numpy import PolicyValueNetNumpy as PolicyValueNet
 import sys
 from collections import defaultdict
 from human_play import Human
+import torch
 
-N=5
-SIZE=8
+N=4
+SIZE=6
 N_GAMES=3
-
+MODEL_1='current_policy.model'
+MODEL_2='current_policy.model'
 
 def policy_evaluate(player1,player2,n_games=N_GAMES):
 
@@ -26,26 +28,20 @@ def policy_evaluate(player1,player2,n_games=N_GAMES):
 
     return win_ratio
 
-def run(model_file_1='best_policy.model',model_file_2='current_policy.model'):
+def run():
+    print ("Benchmarking the following two models:"+MODEL_1+" "+MODEL_2)
+
     n = N
     width, height = SIZE,SIZE
 
-    try:
-        policy_param_1 = pickle.load(open(model_file_1, 'rb'))
-    except:
-        policy_param_1 = pickle.load(open(model_file_1, 'rb'),encoding='bytes')  # To support python3
 
-    best_policy_1 = PolicyValueNet(width, height, policy_param_1)
+    best_policy_1 = PolicyValueNet(width, height, model_file=MODEL_2)
     player_1 = MCTSPlayer(best_policy_1.policy_value_fn,
                              c_puct=5,
                              n_playout=400)  # set larger n_playout for better performance
 
-    try:
-        policy_param_2 = pickle.load(open(model_file_2, 'rb'))
-    except:
-        policy_param_2 = pickle.load(open(model_file_2, 'rb'),encoding='bytes')  # To support python3
+    best_policy_2 = PolicyValueNet(width, height, model_file=MODEL_2)
 
-    best_policy_2 = PolicyValueNet(width, height, policy_param_2)
     player_2 = MCTSPlayer(best_policy_2.policy_value_fn,
                              c_puct=5,
                              n_playout=400)  # set larger n_playout for better performance
@@ -54,15 +50,11 @@ def run(model_file_1='best_policy.model',model_file_2='current_policy.model'):
     mcts_player = MCTS_Pure(c_puct=5, n_playout=400)
     human=Human()
 
-    # result=policy_evaluate(player_1,player_2)
-    result=policy_evaluate(human,player_2)
-    print("The win ratio for "+str(sys.argv[1])+" is: ",str(100*result)+"%")
+    result=policy_evaluate(mcts_player,player_2)
+    print("The win ratio for "+MODEL_1+" is: ",str(100*result)+"%")
 
 
 
 if __name__ == '__main__':
-    try:
-        print ("Benchmarking the following two models:"+str(sys.argv[1])+" "+str(sys.argv[2]))
-    except:
-        print("Usage: Please give two model to benchmark.")
-    run(sys.argv[1],sys.argv[2])
+
+    run()
