@@ -7,10 +7,11 @@ from mcts_alphaZero import MCTSPlayer
 from policy_value_net_numpy import PolicyValueNetNumpy as PolicyValueNet
 import sys
 from collections import defaultdict
+from human_play import Human
 
 N=5
 SIZE=8
-N_GAMES=10
+N_GAMES=3
 
 
 def policy_evaluate(player1,player2,n_games=N_GAMES):
@@ -49,8 +50,13 @@ def run(model_file_1='best_policy.model',model_file_2='current_policy.model'):
                              c_puct=5,
                              n_playout=400)  # set larger n_playout for better performance
 
-    result=policy_evaluate(player_1,player_2)
-    print("The win ratio for "+str(sys.argv[1])+" is %f",result)
+
+    mcts_player = MCTS_Pure(c_puct=5, n_playout=400)
+    human=Human()
+
+    # result=policy_evaluate(player_1,player_2)
+    result=policy_evaluate(human,player_2)
+    print("The win ratio for "+str(sys.argv[1])+" is: ",str(100*result)+"%")
 
 
 
