@@ -67,11 +67,6 @@ class PolicyValueNet():
                                     weight_decay=self.l2_const)
 
         if model_file:
-            # self.policy_value_net=torch.load(model_file)
-            if self.use_gpu:
-                self.policy_value_net = Net(board_width, board_height).cuda()
-            else:
-                self.policy_value_net = Net(board_width, board_height)
             self.policy_value_net.load_state_dict(torch.load(model_file))
 
 
@@ -155,4 +150,3 @@ class PolicyValueNet():
         """ save model params to file """
         net_params = self.get_policy_param()  # get model params
         torch.save(net_params, model_file)
-        # torch.save(self.policy_value_net,model_file)
