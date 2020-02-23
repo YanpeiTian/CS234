@@ -4,6 +4,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.autograd import Variable
 import numpy as np
+import io
 
 USE_GPU=False
 
@@ -66,8 +67,8 @@ class PolicyValueNet():
                                     weight_decay=self.l2_const)
 
         if model_file:
-            net_params = torch.load(model_file)
-            self.policy_value_net.load_state_dict(net_params)
+            self.policy_value_net.load_state_dict(torch.load(model_file))
+
 
     def policy_value(self, state_batch):
         """

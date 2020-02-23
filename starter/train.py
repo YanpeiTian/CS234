@@ -10,6 +10,7 @@ from collections import defaultdict, deque
 from game import Board, Game
 from mcts_pure import MCTSPlayer as MCTS_Pure
 from mcts_alphaZero import MCTSPlayer
+import torch
 
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
@@ -172,14 +173,14 @@ class TrainPipeline():
                 # check the performance of the current model,
                 # and save the model params
                 if (i+1) % self.check_freq == 0:
+                    self.policy_value_net.save_model('./models/'+'iter_'+str(i+1)+'.model')
                     print("current self-play batch: {}".format(i+1))
                     win_ratio = self.policy_evaluate()
-                    self.policy_value_net.save_model('./current_policy.model')
                     if win_ratio > self.best_win_ratio:
                         print("New best policy!!!!!!!!")
                         self.best_win_ratio = win_ratio
                         # update the best_policy
-                        self.policy_value_net.save_model('./best_policy.model')
+                        self.policy_value_net.save_model('./models/'+'best.model')
                         if (self.best_win_ratio == 1.0 and
                                 self.pure_mcts_playout_num < 5000):
                             self.pure_mcts_playout_num += 1000
