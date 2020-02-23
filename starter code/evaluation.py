@@ -8,8 +8,8 @@ from policy_value_net_numpy import PolicyValueNetNumpy as PolicyValueNet
 import sys
 from collections import defaultdict
 
-N=5
-SIZE=8
+N=4
+SIZE=6
 N_GAMES=10
 
 
@@ -50,7 +50,7 @@ def run(model_file_1='best_policy.model',model_file_2='current_policy.model'):
                              n_playout=400)  # set larger n_playout for better performance
 
     result=policy_evaluate(player_1,player_2)
-    print("The win ratio for "+str(sys.argv[1])+" is %f",result)
+    print("The win ratio for "+str(sys.argv[1])+" is",result)
 
 
 
