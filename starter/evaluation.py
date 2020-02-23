@@ -13,9 +13,9 @@ import torch
 N=4
 SIZE=6
 N_GAMES=10
-MODEL_1='models/iter_150.model'
+MODEL_1='models/iter_50.model'
 MODEL_2='models/iter_50.model'
-PLAYOUT=2000
+PLAYOUT=1000
 MCTS_PURE=True
 HUMAN=False
 
