@@ -7,6 +7,9 @@ from policy_value_net_pytorch import PolicyValueNet, Net
 # from policy_value_net_numpy import PolicyValueNetNumpy as PolicyValueNet
 import sys
 from collections import defaultdict
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
 
 import torch
 
@@ -14,9 +17,9 @@ N=5
 SIZE=8
 N_GAMES=10
 MODEL_1='models/iter_50.model'
-MODEL_2='models/iter_10.model'
+MODEL_2='models/iter_50.model'
 PLAYOUT=1000
-MCTS_PURE=False
+MCTS_PURE=True
 HUMAN=False
 
 class Human(object):
@@ -79,6 +82,7 @@ def run():
     #                          n_playout=400)  # set larger n_playout for better performance
     # player_1=Human()
 
+
     win_ratios = []
     game_batchs = range(50,1501,100)
     for game_batch in game_batchs:
@@ -92,8 +96,17 @@ def run():
         win_ratio = policy_evaluate(player_1,player_2)
         win_ratios.append(win_ratio)
         print("The win ratio for "+model+" is: ",str(100*win_ratio)+"%")
+
     print(zip(win_ratios,game_batchs))
 
+    fig, ax = plt.subplots()
+    ax.plot(game_batchs, win_ratios)
+
+    ax.set(xlabel='iterations', ylabel='win ratios',
+       title='Win ratio of models trained by 5 input states vs. MCTS player')
+    ax.grid()
+
+    fig.savefig("win_ratio.png")
 
 if __name__ == '__main__':
     run()
