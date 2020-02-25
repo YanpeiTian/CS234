@@ -10,14 +10,14 @@ from collections import defaultdict
 
 import torch
 
-N=4
-SIZE=6
+N=5
+SIZE=8
 N_GAMES=10
-MODEL_1='models/iter_50.model'
+MODEL_1='models/best.model'
 MODEL_2='models/iter_50.model'
 PLAYOUT=1000
-MCTS_PURE=True
-HUMAN=False
+MCTS_PURE=False
+HUMAN=True
 
 class Human(object):
     """
@@ -47,12 +47,16 @@ class Human(object):
         return "Human {}".format(self.player)
 
 def policy_evaluate(player1,player2,n_games=N_GAMES):
+    if HUMAN:
+        shown=1
+    else:
+        shown=0
 
     win_cnt = defaultdict(int)
     for i in range(n_games):
         board = Board(width=SIZE, height=SIZE, n_in_row=N)
         game = Game(board)
-        winner = game.start_play(player1,player2,start_player=i % 2,is_shown=1)
+        winner = game.start_play(player1,player2,start_player=i % 2,is_shown=shown)
         win_cnt[winner] += 1
     win_ratio = 1.0*(win_cnt[1] + 0.5*win_cnt[-1]) / n_games
 
@@ -66,11 +70,11 @@ def run():
     player_1 = MCTSPlayer(best_policy_1.policy_value_fn,
                              c_puct=5,
                              n_playout=400)  # set larger n_playout for better performance
-
-    best_policy_2 = PolicyValueNet(width, height, model_file=MODEL_2)
-    player_2 = MCTSPlayer(best_policy_2.policy_value_fn,
-                             c_puct=5,
-                             n_playout=400)  # set larger n_playout for better performance
+    
+    # best_policy_2 = PolicyValueNet(width, height, model_file=MODEL_2)
+    # player_2 = MCTSPlayer(best_policy_2.policy_value_fn,
+    #                          c_puct=5,
+    #                          n_playout=400)  # set larger n_playout for better performance
 
     if MCTS_PURE:
         player_2 = MCTS_Pure(c_puct=5, n_playout=PLAYOUT)
@@ -80,8 +84,6 @@ def run():
         print ("Benchmarking the following two models:"+MODEL_1+" Human")
     else:
         print ("Benchmarking the following two models:"+MODEL_1+" "+MODEL_2)
-
-    player_1=Human()
 
     result=policy_evaluate(player_1,player_2)
     print("The win ratio for "+MODEL_1+" is: ",str(100*result)+"%")

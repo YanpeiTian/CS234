@@ -10,8 +10,8 @@ from collections import defaultdict
 
 import torch
 
-N=4
-SIZE=6
+N=5
+SIZE=8
 N_GAMES=10
 MODEL_1='models/iter_50.model'
 MODEL_2='models/iter_50.model'
@@ -62,15 +62,15 @@ def run():
     n = N
     width, height = SIZE,SIZE
 
-    best_policy_1 = PolicyValueNet(width, height, model_file=MODEL_1)
-    player_1 = MCTSPlayer(best_policy_1.policy_value_fn,
-                             c_puct=5,
-                             n_playout=400)  # set larger n_playout for better performance
-
-    best_policy_2 = PolicyValueNet(width, height, model_file=MODEL_2)
-    player_2 = MCTSPlayer(best_policy_2.policy_value_fn,
-                             c_puct=5,
-                             n_playout=400)  # set larger n_playout for better performance
+    # best_policy_1 = PolicyValueNet(width, height, model_file=MODEL_1)
+    # player_1 = MCTSPlayer(best_policy_1.policy_value_fn,
+    #                          c_puct=5,
+    #                          n_playout=400)  # set larger n_playout for better performance
+    #
+    # best_policy_2 = PolicyValueNet(width, height, model_file=MODEL_2)
+    # player_2 = MCTSPlayer(best_policy_2.policy_value_fn,
+    #                          c_puct=5,
+    #                          n_playout=400)  # set larger n_playout for better performance
 
     if MCTS_PURE:
         player_2 = MCTS_Pure(c_puct=5, n_playout=PLAYOUT)
