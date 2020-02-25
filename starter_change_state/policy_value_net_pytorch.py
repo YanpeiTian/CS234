@@ -6,7 +6,7 @@ from torch.autograd import Variable
 import numpy as np
 import io
 
-USE_GPU=False
+USE_GPU=True
 
 def set_learning_rate(optimizer, lr):
     """Sets the learning rate to the given value"""

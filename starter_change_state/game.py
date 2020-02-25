@@ -194,7 +194,7 @@ class Game(object):
                 self.graphic(self.board, player1.player, player2.player)
             end, winner = self.board.game_end()
 
-            print(self.board.current_state())
+           # print(self.board.current_state())
 
             if end:
                 if winner != -1:
