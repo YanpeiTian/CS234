@@ -17,7 +17,6 @@ class Net(nn.Module):
     """policy-value network module"""
     def __init__(self, board_width, board_height,state_representation_channel):
         super(Net, self).__init__()
-        self.state_representation_channel = state_representation_channel
         self.board_width = board_width
         self.board_height = board_height
         # common layers
@@ -68,9 +67,10 @@ class Net(nn.Module):
         return x_act, x_val
 class PolicyValueNet():
     """policy-value network """
-    def __init__(self, board_width, board_height,
-                 model_file=None,state_representation_channel,  use_gpu=USE_GPU):
+    def __init__(self, board_width, board_height,state_representation_channel,
+                 model_file=None, use_gpu=USE_GPU):
         self.use_gpu = use_gpu
+        self.state_representation_channel = state_representation_channel
         self.board_width = board_width
         self.board_height = board_height
         self.l2_const = 1e-4  # coef of l2 penalty
