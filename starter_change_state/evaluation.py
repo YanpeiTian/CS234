@@ -12,9 +12,9 @@ import torch
 
 N=5
 SIZE=8
-N_GAMES=10
-MODEL_1='models/iter_50.model'
-MODEL_2='models/iter_10.model'
+N_GAMES=100
+MODEL_1='models/iter_1050.model'
+MODEL_2='../starter/models_original_2_24/best.model'
 PLAYOUT=1000
 MCTS_PURE=False
 HUMAN=False
@@ -64,35 +64,29 @@ def run():
 
     if MCTS_PURE:
         player_2 = MCTS_Pure(c_puct=5, n_playout=PLAYOUT)
-        # print ("Benchmarking the following two models:"+MODEL_1+" Pure MCTS")
+        print ("Benchmarking the following two models:"+MODEL_1+" Pure MCTS")
     elif HUMAN:
         player_2=Human()
-        # print ("Benchmarking the following two models:"+MODEL_1+" Human")
+        print ("Benchmarking the following two models:"+MODEL_1+" Human")
     else:
-        pass
-        # print ("Benchmarking the following two models:"+MODEL_1+" "+MODEL_2)
+        print ("Benchmarking the following two models:"+MODEL_1+"  vs  "+MODEL_2)
 
-    #
-    # best_policy_2 = PolicyValueNet(width, height, model_file=MODEL_2)
-    # player_2 = MCTSPlayer(best_policy_2.policy_value_fn,
-    #                          c_puct=5,
-    #                          n_playout=400)  # set larger n_playout for better performance
-    # player_1=Human()
 
-    win_ratios = []
-    game_batchs = range(50,1501,100)
-    for game_batch in game_batchs:
-        model = './models/iter_'+str(game_batch)+'.model'
-        print(model)
+    policy_1= PolicyValueNet(width, height, model_file=MODEL_1,state_representation_channel = 5)
+    player_1 = MCTSPlayer(policy_1.policy_value_fn,
+                             c_puct=5,
+                             n_playout=400)  # set larger n_playout for better performance
 
-        policy = PolicyValueNet(width, height, model_file=model)
-        player_1 = MCTSPlayer(policy.policy_value_fn,
-                                 c_puct=5,
-                                 n_playout=400)  # set larger n_playout for better performance
-        win_ratio = policy_evaluate(player_1,player_2)
-        win_ratios.append(win_ratio)
-        print("The win ratio for "+model+" is: ",str(100*win_ratio)+"%")
-    print(zip(win_ratios,game_batchs))
+    policy_2= PolicyValueNet(width, height, model_file=MODEL_2,state_representation_channel = 4)
+    player_2 = MCTSPlayer(policy_2.policy_value_fn,
+                             c_puct=5,
+                             n_playout=400)  # set larger n_playout for better performance
+
+
+
+
+    win_ratio = policy_evaluate(player_1,player_2)
+    print("The win ratio for "+MODEL_1+" is: ",str(100*win_ratio)+"%")
 
 
 if __name__ == '__main__':
