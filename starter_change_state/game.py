@@ -55,7 +55,7 @@ class Board(object):
         """return the board state from the perspective of the current player.
         state shape: 4*width*height
         """
-        if self.state_representation_channel == 5:
+        if state_representation_channel == 5:
             square_state = np.zeros((5, self.width, self.height))
             if self.states:
                 moves, players = np.array(list(zip(*self.states.items())))
@@ -86,7 +86,7 @@ class Board(object):
             if self.current_player==self.players[1]:
                 square_state[4][:, :] = 1.0  # indicate the colour to play
             return square_state[:, ::-1, :]
-        elif self.state_representation_channel == 4:
+        elif state_representation_channel == 4:
             square_state = np.zeros((4, self.width, self.height))
             if self.states:
                 moves, players = np.array(list(zip(*self.states.items())))
