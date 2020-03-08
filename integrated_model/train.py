@@ -11,7 +11,7 @@ from game import Board, Game
 from mcts_pure import MCTSPlayer as MCTS_Pure
 from mcts_alphaZero import MCTSPlayer
 import torch
-
+from torch.utils.tensorboard import SummaryWriter
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
@@ -27,6 +27,7 @@ SAVE_FREQ = 10
 class TrainPipeline():
     def __init__(self, init_model=None):
         # params of the board and the game
+        self.writer = SummaryWriter()
         self.board_width = BOARD_SIZE
         self.board_height = BOARD_SIZE
         self.n_resnet = N_RESNET
@@ -154,6 +155,7 @@ class TrainPipeline():
                         entropy,
                         explained_var_old,
                         explained_var_new))
+
         return loss, entropy
 
     def policy_evaluate(self, n_games=10):
@@ -188,12 +190,15 @@ class TrainPipeline():
                         i+1, self.episode_len))
                 if len(self.data_buffer) > self.batch_size:
                     loss, entropy = self.policy_update()
+                    self.writer.add_scalar('loss', loss, i)
+                    self.writer.add_scalar('entropy', entropy, i)
                 # check the performance of the current model,
                 # and save the model params
                 if (i+1) % self.check_freq == 0:
                     self.policy_value_net.save_model('./models/'+'iter_'+str(i+1)+'.model')
                     print("current self-play batch: {}".format(i+1))
                     win_ratio = self.policy_evaluate()
+                    self.writer.add_scalar('win_ratio', win_ratio, i)
                     if win_ratio > self.best_win_ratio:
                         print("New best policy!!!!!!!!")
                         self.best_win_ratio = win_ratio
@@ -203,6 +208,7 @@ class TrainPipeline():
                                 self.pure_mcts_playout_num < 5000):
                             self.pure_mcts_playout_num += 1000
                             self.best_win_ratio = 0.0
+            self.writer.close()
         except KeyboardInterrupt:
             print('\n\rquit')
 
