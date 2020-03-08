@@ -18,6 +18,10 @@ os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 BOARD_SIZE = 6
 N_ROW = 4
 N_RESNET = 3
+IN_CHANNEL = 4
+USE_GPU = False
+TRAIN_EPOCH = 100
+SAVE_FREQ = 10
 
 
 class TrainPipeline():
@@ -26,6 +30,7 @@ class TrainPipeline():
         self.board_width = BOARD_SIZE
         self.board_height = BOARD_SIZE
         self.n_resnet = N_RESNET
+        self.in_channel = IN_CHANNEL
         self.n_in_row = N_ROW
         self.board = Board(width=self.board_width,
                            height=self.board_height,
@@ -43,8 +48,8 @@ class TrainPipeline():
         self.play_batch_size = 1
         self.epochs = 5  # num of train_steps for each update
         self.kl_targ = 0.02
-        self.check_freq = 20
-        self.game_batch_num = 100
+        self.check_freq = SAVE_FREQ
+        self.game_batch_num = TRAIN_EPOCH
         self.best_win_ratio = 0.0
         # num of simulations used for the pure mcts, which is used as
         # the opponent to evaluate the trained policy
@@ -54,13 +59,17 @@ class TrainPipeline():
             self.policy_value_net = PolicyValueNet(self.board_width,
                                                    self.board_height,
                                                    self.n_resnet,
-                                                   model_file=init_model)
+                                                   self.in_channel,
+                                                   model_file=init_model,
+                                                   use_gpu=USE_GPU)
 
         else:
             # start training from a new policy-value net
             self.policy_value_net = PolicyValueNet(self.board_width,
                                                    self.board_height,
-                                                   self.n_resnet)
+                                                   self.n_resnet,
+                                                   self.in_channel,
+                                                   use_gpu=USE_GPU)
         self.mcts_player = MCTSPlayer(self.policy_value_net.policy_value_fn,
                                       c_puct=self.c_puct,
                                       n_playout=self.n_playout,

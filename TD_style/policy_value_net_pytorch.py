@@ -6,9 +6,6 @@ from torch.autograd import Variable
 import numpy as np
 import io
 
-USE_GPU=False
-INPUT_CHANNEL=4
-
 def set_learning_rate(optimizer, lr):
     """Sets the learning rate to the given value"""
     for param_group in optimizer.param_groups:
@@ -33,15 +30,16 @@ class ResNet(nn.Module):
 
 class Net(nn.Module):
     """policy-value network module"""
-    def __init__(self, board_width, board_height,n_resnet):
+    def __init__(self, board_width, board_height,n_resnet,in_channel):
         super(Net, self).__init__()
 
         self.board_width = board_width
         self.board_height = board_height
         self.n_resent = n_resnet
+        self.in_channel = in_channel
 
         # Inoput layer
-        self.conv0=nn.Conv2d(INPUT_CHANNEL, 256 , kernel_size=3 , padding=1)
+        self.conv0=nn.Conv2d(self.in_channel, 256 , kernel_size=3 , padding=1)
         self.conv0_bn = nn.BatchNorm2d(256)
 
         # # ResNet
@@ -82,18 +80,19 @@ class Net(nn.Module):
 
 class PolicyValueNet():
     """policy-value network """
-    def __init__(self, board_width, board_height, n_resnet,
-                 model_file=None, use_gpu=USE_GPU):
+    def __init__(self, board_width, board_height, n_resnet,in_channel,
+                 model_file=None, use_gpu=False):
         self.use_gpu = use_gpu
         self.board_width = board_width
         self.board_height = board_height
         self.n_resnet = n_resnet
+        self.in_channel = in_channel
         self.l2_const = 1e-4  # coef of l2 penalty
         # the policy value net module
         if self.use_gpu:
-            self.policy_value_net = Net(board_width, board_height,n_resnet).cuda()
+            self.policy_value_net = Net(board_width, board_height,n_resnet,in_channel).cuda()
         else:
-            self.policy_value_net = Net(board_width, board_height,n_resnet)
+            self.policy_value_net = Net(board_width, board_height,n_resnet,in_channel)
         self.optimizer = optim.Adam(self.policy_value_net.parameters(),
                                     weight_decay=self.l2_const)
 
