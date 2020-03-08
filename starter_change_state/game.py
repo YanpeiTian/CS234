@@ -1,6 +1,8 @@
 from __future__ import print_function
 import numpy as np
 from time import sleep
+from collections import deque
+import copy
 
 class Board(object):
     """board for the game"""
@@ -8,12 +10,27 @@ class Board(object):
     def __init__(self, **kwargs):
         self.width = int(kwargs.get('width', 8))
         self.height = int(kwargs.get('height', 8))
-        # board states stored as a dict,
-        # key: move as location on the board,
-        # value: player as pieces type
-        self.states = {}
-        self.last = {}
-        self.lastlast={}
+
+
+
+        max_state_representation_layer = 51
+        self.states_buffer = deque(maxlen = max_state_representation_layer -1)
+        for i in range(max_state_representation_layer -1):
+            # board states stored as a dict,
+            # key: move as location on the board,
+            # value: player as pieces type
+            state = {}
+            self.states_buffer.append(state)
+
+        assert (len(self.states_buffer)==max_state_representation_layer -1)
+        # print('states_buffer should all be empty dicts: ',self.states_buffer)
+        # print('states_buffer length: ',len(self.states_buffer))
+
+        # self.states = {}
+        # self.last = {}
+        # self.lastlast={}
+
+
         # need how many pieces in a row to win
         self.n_in_row = int(kwargs.get('n_in_row', 5))
         self.players = [1, 2]  # player1 and player2
@@ -25,8 +42,8 @@ class Board(object):
         self.current_player = self.players[start_player]  # start player
         # keep available moves in a list
         self.availables = list(range(self.width * self.height))
-        self.states = {}
-        self.laststates = {}
+        # self.states = {}
+        # self.laststates = {}
         self.last_move = -1
 
     def move_to_location(self, move):
@@ -53,71 +70,53 @@ class Board(object):
 
     def current_state(self,state_representation_channel):
         """return the board state from the perspective of the current player.
-        state shape: 4*width*height
+        state shape: state_representation_channel * width * height
         """
-        if state_representation_channel == 5:
-            square_state = np.zeros((5, self.width, self.height))
-            if self.states:
-                moves, players = np.array(list(zip(*self.states.items())))
+        square_state = np.zeros((state_representation_channel, self.width, self.height))
+        assert (state_representation_channel % 2 == 1)
+        each_player_layers = (state_representation_channel-1)/2
+
+        black_layer = 0
+        for i in range(1,1+int(2*each_player_layers),2):
+            # print('i = ',i)
+            state = self.states_buffer[-i]
+            if state:
+
+                white_layer = int(each_player_layers + black_layer)
+                moves, players = np.array(list(zip(*state.items())))
                 move_1 = moves[players == self.players[0]]
                 move_2 = moves[players == self.players[1]]
-                square_state[0][move_1 // self.width,
-                                move_1 % self.height] = 1.0
-                square_state[2][move_2 // self.width,
-                                move_2 % self.height] = 1.0
+                square_state[black_layer][move_1 // self.width,move_1 % self.height] = 1.0
+                square_state[white_layer][move_2 // self.width,move_2 % self.height] = 1.0
 
-                if self.lastlast:
+                black_layer+=1
+            else:
+                break
 
-                    lastmoves, lastplayers = np.array(list(zip(*self.lastlast.items())))
-                    move_1 = lastmoves[lastplayers == self.players[0]]
-                    move_2 = lastmoves[lastplayers == self.players[1]]
+        if self.current_player==self.players[1]:
+            square_state[state_representation_channel - 1][:, :] = 1.0  # indicate the colour to play
+        return square_state[:, ::-1, :]
 
-                    square_state[1][move_1 // self.width,
-                                    move_1 % self.height] = 1.0
-                    square_state[3][move_2 // self.width,
-                                    move_2 % self.height] = 1.0
-
-
-                # indicate the last move location
-                #
-                # if (self.last_move != -1 ):
-                #     square_state[2][self.last_move // self.width,
-                #                     self.last_move % self.height] = 1.0
-            if self.current_player==self.players[1]:
-                square_state[4][:, :] = 1.0  # indicate the colour to play
-            return square_state[:, ::-1, :]
-        elif state_representation_channel == 4:
-            square_state = np.zeros((4, self.width, self.height))
-            if self.states:
-                moves, players = np.array(list(zip(*self.states.items())))
-                move_curr = moves[players == self.current_player]
-                move_oppo = moves[players != self.current_player]
-                square_state[0][move_curr // self.width,
-                                move_curr % self.height] = 1.0
-                square_state[1][move_oppo // self.width,
-                                move_oppo % self.height] = 1.0
-                # indicate the last move location
-                square_state[2][self.last_move // self.width,
-                                self.last_move % self.height] = 1.0
-            if len(self.states) % 2 == 0:
-                square_state[3][:, :] = 1.0  # indicate the colour to play
-            return square_state[:, ::-1, :]
-            
     def do_move(self, move):
-        self.lastlast = dict(self.last)
-        self.last = dict(self.states)
-        self.states[move] = self.current_player
+        #rightmost--> most current state of board
+        #leftmost --> oldest item state of board
+        top = copy.deepcopy(self.states_buffer[-1])
+        top[move] = self.current_player
+        self.states_buffer.append(top)
+
+        # print(self.states_buffer)
+
         self.availables.remove(move)
         self.current_player = (
             self.players[0] if self.current_player == self.players[1]
             else self.players[1]
         )
-        # self.last_move = move
 
     def has_a_winner(self):
         width = self.width
         height = self.height
-        states = self.states
+        # states = self.states
+        states = self.states_buffer[-1]
         n = self.n_in_row
 
         moved = list(set(range(width * height)) - set(self.availables))
@@ -164,6 +163,7 @@ class Game(object):
 
     def __init__(self, board, **kwargs):
         self.board = board
+        self.state_representation_channel = int(kwargs.get('state_representation_channel', 11))
 
     def graphic(self, board, player1, player2):
         """Draw the board and show game info"""
@@ -180,7 +180,7 @@ class Game(object):
             print("{0:4d}".format(i), end='')
             for j in range(width):
                 loc = i * width + j
-                p = board.states.get(loc, -1)
+                p = board.states_buffer[-1].get(loc, -1)
                 if p == player1:
                     print('X'.center(8), end='')
                 elif p == player2:
@@ -210,7 +210,7 @@ class Game(object):
                 self.graphic(self.board, player1.player, player2.player)
             end, winner = self.board.game_end()
 
-           # print(self.board.current_state())
+            print(self.board.current_state(state_representation_channel = 11))
 
             if end:
                 if winner != -1:
@@ -231,7 +231,7 @@ class Game(object):
                                                  temp=temp,
                                                  return_prob=1)
             # store the data
-            states.append(self.board.current_state())
+            states.append(self.board.current_state(self.state_representation_channel))
             mcts_probs.append(move_probs)
             current_players.append(self.board.current_player)
             # perform a move
