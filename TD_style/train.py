@@ -17,6 +17,7 @@ os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 BOARD_SIZE = 6
 N_ROW = 4
+N_RESNET = 3
 
 
 class TrainPipeline():
@@ -24,6 +25,7 @@ class TrainPipeline():
         # params of the board and the game
         self.board_width = BOARD_SIZE
         self.board_height = BOARD_SIZE
+        self.n_resnet = N_RESNET
         self.n_in_row = N_ROW
         self.board = Board(width=self.board_width,
                            height=self.board_height,
@@ -51,11 +53,14 @@ class TrainPipeline():
             # start training from an initial policy-value net
             self.policy_value_net = PolicyValueNet(self.board_width,
                                                    self.board_height,
+                                                   self.n_resnet,
                                                    model_file=init_model)
+
         else:
             # start training from a new policy-value net
             self.policy_value_net = PolicyValueNet(self.board_width,
-                                                   self.board_height)
+                                                   self.board_height,
+                                                   self.n_resnet)
         self.mcts_player = MCTSPlayer(self.policy_value_net.policy_value_fn,
                                       c_puct=self.c_puct,
                                       n_playout=self.n_playout,
@@ -194,4 +199,5 @@ class TrainPipeline():
 
 if __name__ == '__main__':
     training_pipeline = TrainPipeline()
+    # print(training_pipeline.policy_value_net.policy_value_net)
     training_pipeline.run()
