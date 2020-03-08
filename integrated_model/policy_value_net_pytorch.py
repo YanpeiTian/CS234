@@ -6,79 +6,93 @@ from torch.autograd import Variable
 import numpy as np
 import io
 
-USE_GPU=False
-
 def set_learning_rate(optimizer, lr):
     """Sets the learning rate to the given value"""
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
+class ResNet(nn.Module):
+    def __init__(self):
+        super(ResNet, self).__init__()
+        # ResNet
+        self.res_conv1 = nn.Conv2d(256, 256, kernel_size=3, padding=1)
+        self.res_conv1_bn = nn.BatchNorm2d(256)
+        self.res_conv2 = nn.Conv2d(256, 256, kernel_size=3, padding=1)
+        self.res_conv2_bn = nn.BatchNorm2d(256)
+
+    def forward(self, input):
+        x = F.relu(self.res_conv1_bn(self.res_conv1(input)))
+        x = self.res_conv2_bn(self.res_conv2(x))
+        x = x + input
+        x = F.relu(x)
+        return x
+
+
 class Net(nn.Module):
     """policy-value network module"""
-    def __init__(self, board_width, board_height,state_representation_channel):
+    def __init__(self, board_width, board_height,n_resnet,in_channel):
         super(Net, self).__init__()
+
         self.board_width = board_width
         self.board_height = board_height
-        # common layers
-        self.conv1 = nn.Conv2d(state_representation_channel, 32, kernel_size=3, padding=1)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
-        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
-        # action policy layers
-        self.act_conv1 = nn.Conv2d(128, 4, kernel_size=1)
-        self.act_fc1 = nn.Linear(4*board_width*board_height,
-                                 board_width*board_height)
-        # state value layers
-        self.val_conv1 = nn.Conv2d(128, 2, kernel_size=1)
-        self.val_fc1 = nn.Linear(2*board_width*board_height, 64)
-        self.val_fc2 = nn.Linear(64, 1)
+        self.n_resent = n_resnet
+        self.in_channel = in_channel
+
+        # Inoput layer
+        self.conv0=nn.Conv2d(self.in_channel, 256 , kernel_size=3 , padding=1)
+        self.conv0_bn = nn.BatchNorm2d(256)
+
+        # # ResNet
+        self.resnets = nn.ModuleList([ResNet() for i in range(n_resnet)])
+
+        # Policy head
+        self.act_conv1 = nn.Conv2d(256, 2, kernel_size=1)
+        self.act_conv1_bn = nn.BatchNorm2d(2)
+        self.act_fc1 = nn.Linear(2*board_width*board_height, board_width*board_height)
+
+        # Value head
+        self.val_conv1 = nn.Conv2d(256, 1, kernel_size=1)
+        self.val_conv1_bn = nn.BatchNorm2d(1)
+        self.val_fc1 = nn.Linear(board_width*board_height, 256)
+        self.val_fc2 = nn.Linear(256, 1)
 
     def forward(self, state_input):
-        # common layers
-        x = F.relu(self.conv1(state_input))
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.conv3(x))
-        # action policy layers
-        x_act = F.relu(self.act_conv1(x))
-        x_act = x_act.view(-1, 4*self.board_width*self.board_height)
+
+        # Common layers
+        x = F.relu(self.conv0_bn(self.conv0(state_input)))
+
+        for l in self.resnets:
+            x = l(x)
+
+        # Policy head
+        x_act = F.relu(self.act_conv1_bn(self.act_conv1(x)))
+        x_act = x_act.view(-1, 2*self.board_width*self.board_height)
         x_act = F.log_softmax(self.act_fc1(x_act))
-        # state value layers
-        x_val = F.relu(self.val_conv1(x))
-        x_val = x_val.view(-1, 2*self.board_width*self.board_height)
+
+        # Value head
+        x_val = F.relu(self.val_conv1_bn(self.val_conv1(x)))
+        x_val = x_val.view(-1, self.board_width*self.board_height)
         x_val = F.relu(self.val_fc1(x_val))
         x_val = F.tanh(self.val_fc2(x_val))
+
         return x_act, x_val
 
 
-
-    def forward(self, state_input):
-        # common layers
-        x = F.relu(self.conv1(state_input))
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.conv3(x))
-        # action policy layers
-        x_act = F.relu(self.act_conv1(x))
-        x_act = x_act.view(-1, 4*self.board_width*self.board_height)
-        x_act = F.log_softmax(self.act_fc1(x_act))
-        # state value layers
-        x_val = F.relu(self.val_conv1(x))
-        x_val = x_val.view(-1, 2*self.board_width*self.board_height)
-        x_val = F.relu(self.val_fc1(x_val))
-        x_val = F.tanh(self.val_fc2(x_val))
-        return x_act, x_val
 class PolicyValueNet():
     """policy-value network """
-    def __init__(self, board_width, board_height,state_representation_channel,
-                 model_file=None, use_gpu=USE_GPU):
+    def __init__(self, board_width, board_height, n_resnet,in_channel,
+                 model_file=None, use_gpu=False):
         self.use_gpu = use_gpu
-        self.state_representation_channel = state_representation_channel
         self.board_width = board_width
         self.board_height = board_height
+        self.n_resnet = n_resnet
+        self.in_channel = in_channel
         self.l2_const = 1e-4  # coef of l2 penalty
         # the policy value net module
         if self.use_gpu:
-            self.policy_value_net = Net(board_width, board_height,state_representation_channel).cuda()
+            self.policy_value_net = Net(board_width, board_height,n_resnet,in_channel).cuda()
         else:
-            self.policy_value_net = Net(board_width, board_height,state_representation_channel)
+            self.policy_value_net = Net(board_width, board_height,n_resnet,in_channel)
         self.optimizer = optim.Adam(self.policy_value_net.parameters(),
                                     weight_decay=self.l2_const)
 
@@ -109,8 +123,8 @@ class PolicyValueNet():
         action and the score of the board state
         """
         legal_positions = board.availables
-        current_state = np.ascontiguousarray(board.current_state(self.state_representation_channel).reshape(
-                -1, self.state_representation_channel, self.board_width, self.board_height))
+        current_state = np.ascontiguousarray(board.current_state(state_representation_channel = self.in_channel).reshape(
+                -1, self.in_channel, self.board_width, self.board_height))
         if self.use_gpu:
             log_act_probs, value = self.policy_value_net(
                     Variable(torch.from_numpy(current_state)).cuda().float())

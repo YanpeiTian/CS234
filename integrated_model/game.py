@@ -199,7 +199,7 @@ class Game(object):
                 self.graphic(self.board, player1.player, player2.player)
             end, winner = self.board.game_end()
 
-            print(self.board.current_state(state_representation_channel = 11))
+            # print(self.board.current_state(state_representation_channel = 11))
 
             if end:
                 if winner != -1:

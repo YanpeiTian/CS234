@@ -15,18 +15,27 @@ import torch
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
+BOARD_SIZE = 6
+N_ROW = 4
+N_RESNET = 3
+IN_CHANNEL = 11
+USE_GPU = False
+TRAIN_EPOCH = 100
+SAVE_FREQ = 10
+
 
 class TrainPipeline():
     def __init__(self, init_model=None):
         # params of the board and the game
-        self.board_width = 6
-        self.board_height = 6
-        self.n_in_row = 4
-        self.state_representation_channel = 11
+        self.board_width = BOARD_SIZE
+        self.board_height = BOARD_SIZE
+        self.n_resnet = N_RESNET
+        self.in_channel = IN_CHANNEL
+        self.n_in_row = N_ROW
         self.board = Board(width=self.board_width,
                            height=self.board_height,
                            n_in_row=self.n_in_row)
-        self.game = Game(self.board,state_representation_channel = self.state_representation_channel)
+        self.game = Game(self.board,state_representation_channel = self.in_channel)
         # training params
         self.learn_rate = 2e-3
         self.lr_multiplier = 1.0  # adaptively adjust the learning rate based on KL
@@ -39,24 +48,28 @@ class TrainPipeline():
         self.play_batch_size = 1
         self.epochs = 5  # num of train_steps for each update
         self.kl_targ = 0.02
-        self.check_freq = 10
-        self.game_batch_num = 1500
+        self.check_freq = SAVE_FREQ
+        self.game_batch_num = TRAIN_EPOCH
         self.best_win_ratio = 0.0
         # num of simulations used for the pure mcts, which is used as
         # the opponent to evaluate the trained policy
         self.pure_mcts_playout_num = 1000
-
-
         if init_model:
             # start training from an initial policy-value net
             self.policy_value_net = PolicyValueNet(self.board_width,
                                                    self.board_height,
+                                                   self.n_resnet,
+                                                   self.in_channel,
                                                    model_file=init_model,
-                                                   state_representation_channel = self.state_representation_channel)
+                                                   use_gpu=USE_GPU)
+
         else:
             # start training from a new policy-value net
             self.policy_value_net = PolicyValueNet(self.board_width,
-                                                   self.board_height,state_representation_channel = self.state_representation_channel)
+                                                   self.board_height,
+                                                   self.n_resnet,
+                                                   self.in_channel,
+                                                   use_gpu=USE_GPU)
         self.mcts_player = MCTSPlayer(self.policy_value_net.policy_value_fn,
                                       c_puct=self.c_puct,
                                       n_playout=self.n_playout,
@@ -89,8 +102,8 @@ class TrainPipeline():
         """collect self-play data for training"""
         for i in range(n_games):
             winner, play_data = self.game.start_self_play_TD(self.mcts_player,
-                                                 self.policy_value_net,
-                                                 temp=self.temp)
+                                                             self.policy_value_net,
+                                                             temp=self.temp)
             play_data = list(play_data)[:]
             self.episode_len = len(play_data)
             # augment the data
@@ -195,4 +208,5 @@ class TrainPipeline():
 
 if __name__ == '__main__':
     training_pipeline = TrainPipeline()
+    # print(training_pipeline.policy_value_net.policy_value_net)
     training_pipeline.run()
