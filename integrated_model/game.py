@@ -10,27 +10,7 @@ class Board(object):
     def __init__(self, **kwargs):
         self.width = int(kwargs.get('width', 8))
         self.height = int(kwargs.get('height', 8))
-
-
-
-        max_state_representation_layer = 51
-        self.states_buffer = deque(maxlen = max_state_representation_layer -1)
-        for i in range(max_state_representation_layer -1):
-            # board states stored as a dict,
-            # key: move as location on the board,
-            # value: player as pieces type
-            state = {}
-            self.states_buffer.append(state)
-
-        assert (len(self.states_buffer)==max_state_representation_layer -1)
-        # print('states_buffer should all be empty dicts: ',self.states_buffer)
-        # print('states_buffer length: ',len(self.states_buffer))
-
-        # self.states = {}
-        # self.last = {}
-        # self.lastlast={}
-
-
+        self.max_state_representation_layer = 51
         # need how many pieces in a row to win
         self.n_in_row = int(kwargs.get('n_in_row', 5))
         self.players = [1, 2]  # player1 and player2
@@ -40,11 +20,20 @@ class Board(object):
             raise Exception('board width and height can not be '
                             'less than {}'.format(self.n_in_row))
         self.current_player = self.players[start_player]  # start player
+
         # keep available moves in a list
         self.availables = list(range(self.width * self.height))
-        # self.states = {}
-        # self.laststates = {}
-        self.last_move = -1
+        self.states_buffer = deque(maxlen = self.max_state_representation_layer -1)
+        for i in range(self.max_state_representation_layer -1):
+            # board states stored as a dict,
+            # key: move as location on the board,
+            # value: player as pieces type
+            state = {}
+            self.states_buffer.append(state)
+
+        assert (len(self.states_buffer)==self.max_state_representation_layer -1)
+        # print('states_buffer should all be empty dicts: ',self.states_buffer)
+        # print('states_buffer length: ',len(self.states_buffer))
 
     def move_to_location(self, move):
         """
