@@ -208,40 +208,41 @@ class Game(object):
                     print("Game end. Tie")
                 return winner
 
-    def start_self_play(self, player, is_shown=0, temp=1e-3):
-        """ start a self-play game using a MCTS player, reuse the search tree,
-        and store the self-play data: (state, mcts_probs, z) for training
-        """
-        self.board.init_board()
-        p1, p2 = self.board.players
-        states, mcts_probs, current_players = [], [], []
-        while True:
-            move, move_probs = player.get_action(self.board,
-                                                 temp=temp,
-                                                 return_prob=1)
-            # store the data
-            states.append(self.board.current_state(self.state_representation_channel))
-            mcts_probs.append(move_probs)
-            current_players.append(self.board.current_player)
-            # perform a move
-            self.board.do_move(move)
-            if is_shown:
-                self.graphic(self.board, p1, p2)
-            end, winner = self.board.game_end()
-            if end:
-                # winner from the perspective of the current player of each state
-                winners_z = np.zeros(len(current_players))
-                if winner != -1:
-                    winners_z[np.array(current_players) == winner] = 1.0
-                    winners_z[np.array(current_players) != winner] = -1.0
-                # reset MCTS root node
-                player.reset_player()
-                if is_shown:
-                    if winner != -1:
-                        print("Game end. Winner is player:", winner)
-                    else:
-                        print("Game end. Tie")
-                return winner, zip(states, mcts_probs, winners_z)
+    # def start_self_play(self, player, is_shown=0, temp=1e-3):
+    #     """ start a self-play game using a MCTS player, reuse the search tree,
+    #     and store the self-play data: (state, mcts_probs, z) for training
+    #     """
+    #     self.board.init_board()
+    #     p1, p2 = self.board.players
+    #     states, mcts_probs, current_players = [], [], []
+    #     while True:
+    #         move, move_probs = player.get_action(self.board,
+    #                                              temp=temp,
+    #                                              return_prob=1)
+    #         # store the data
+    #         states.append(self.board.current_state(self.state_representation_channel))
+    #         mcts_probs.append(move_probs)
+    #         current_players.append(self.board.current_player)
+    #         # perform a move
+    #         self.board.do_move(move)
+    #         if is_shown:
+    #             self.graphic(self.board, p1, p2)
+    #         end, winner = self.board.game_end()
+    #         if end:
+    #             # winner from the perspective of the current player of each state
+    #             winners_z = np.zeros(len(current_players))
+    #             if winner != -1:
+    #                 winners_z[np.array(current_players) == winner] = 1.0
+    #                 winners_z[np.array(current_players) != winner] = -1.0
+    #             # reset MCTS root node
+    #             player.reset_player()
+    #             if is_shown:
+    #                 if winner != -1:
+    #                     print("Game end. Winner is player:", winner)
+    #                 else:
+    #                     print("Game end. Tie")
+    #             return winner, zip(states, mcts_probs, winners_z)
+
     def start_self_play_TD(self, player, policy_value_net, is_shown=0, temp=1e-3):
         """ start a self-play game using a MCTS player, reuse the search tree,
         and store the self-play data: (state, mcts_probs, z) for training
