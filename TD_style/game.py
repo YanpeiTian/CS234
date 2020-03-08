@@ -253,7 +253,7 @@ class Game(object):
                 return winner, zip(states, mcts_probs, winners_z)
 
             predict_value = policy_value_net.policy_value_fn(self.board)[-1].item()
-            if step > (self.board.width * self.board.height)/3 and (predict_value>0.9 or predict_value<-0.9):
+            if step > (self.board.width * self.board.height)/4 and (predict_value>0.99 or predict_value<-0.99):
             # if predict_value>0.99 or predict_value<-0.99:
 
                 print("Predicted value: "+str(predict_value))
@@ -262,6 +262,7 @@ class Game(object):
                 winners_z = np.zeros(len(current_players))
                 winners_z[np.array(current_players) == self.board.current_player] = -predict_value
                 winners_z[np.array(current_players) != self.board.current_player] = predict_value
+
                 # reset MCTS root node
                 player.reset_player()
 
