@@ -15,10 +15,10 @@ from torch.utils.tensorboard import SummaryWriter
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
-BOARD_SIZE = 8
-N_ROW = 5
-N_RESNET = 10
-IN_CHANNEL = 11
+BOARD_SIZE = 4
+N_ROW = 3
+N_RESNET = 1
+IN_CHANNEL = 3
 USE_GPU = False
 TRAIN_EPOCH = 100
 SAVE_FREQ = 10
@@ -52,6 +52,7 @@ class TrainPipeline():
         self.check_freq = SAVE_FREQ
         self.game_batch_num = TRAIN_EPOCH
         self.best_win_ratio = 0.0
+        self.best_policy = 0
         # num of simulations used for the pure mcts, which is used as
         # the opponent to evaluate the trained policy
         self.pure_mcts_playout_num = 1000
@@ -201,6 +202,7 @@ class TrainPipeline():
                     self.writer.add_scalar('win_ratio', win_ratio, i)
                     if win_ratio > self.best_win_ratio:
                         print("New best policy!!!!!!!!")
+                        self.best_policy = i
                         self.best_win_ratio = win_ratio
                         # update the best_policy
                         self.policy_value_net.save_model('./models/'+'best.model')
@@ -208,6 +210,8 @@ class TrainPipeline():
                                 self.pure_mcts_playout_num < 5000):
                             self.pure_mcts_playout_num += 1000
                             self.best_win_ratio = 0.0
+                self.writer.add_scalars('best policy vs rollout', {'best_policy':self.best_policy,'rollout':self.pure_mcts_playout_num}, i)
+
             self.writer.close()
         except KeyboardInterrupt:
             print('\n\rquit')
