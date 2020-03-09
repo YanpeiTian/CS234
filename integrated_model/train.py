@@ -15,10 +15,10 @@ import torch
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
-BOARD_SIZE = 8
-N_ROW = 5
-N_RESNET = 10
-IN_CHANNEL = 11
+BOARD_SIZE = 6
+N_ROW = 4
+N_RESNET = 2
+IN_CHANNEL = 5
 USE_GPU = False
 TRAIN_EPOCH = 100
 SAVE_FREQ = 10
