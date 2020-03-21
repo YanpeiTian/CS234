@@ -280,18 +280,18 @@ class Game(object):
                         print("Game end. Tie")
                 return winner, zip(states, mcts_probs, winners_z)
 
-            predict_value = policy_value_net.policy_value_fn(self.board)[-1].item()
-            if step > (self.board.width * self.board.height)/2 and (predict_value>0.99 or predict_value<-0.99):
-            # if predict_value>0.99 or predict_value<-0.99:
-
-                print("Predicted value: "+str(predict_value))
-
-                # winner from the perspective of the current player of each state
-                winners_z = np.zeros(len(current_players))
-                winners_z[np.array(current_players) == self.board.current_player] = -predict_value
-                winners_z[np.array(current_players) != self.board.current_player] = predict_value
-
-                # reset MCTS root node
-                player.reset_player()
-
-                return -1, zip(states, mcts_probs, winners_z)
+            # predict_value = policy_value_net.policy_value_fn(self.board)[-1].item()
+            # if step > (self.board.width * self.board.height)/2 and (predict_value>0.99 or predict_value<-0.99):
+            # # if predict_value>0.99 or predict_value<-0.99:
+            #
+            #     print("Predicted value: "+str(predict_value))
+            #
+            #     # winner from the perspective of the current player of each state
+            #     winners_z = np.zeros(len(current_players))
+            #     winners_z[np.array(current_players) == self.board.current_player] = -predict_value
+            #     winners_z[np.array(current_players) != self.board.current_player] = predict_value
+            #
+            #     # reset MCTS root node
+            #     player.reset_player()
+            #
+            #     return -1, zip(states, mcts_probs, winners_z)

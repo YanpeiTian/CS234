@@ -10,11 +10,11 @@ from collections import defaultdict
 
 import torch
 
-N=4
-SIZE=6
+N=5
+SIZE=8
 N_GAMES=1
-MODEL_1='models/iter_1050.model'
-MODEL_2='../starter/models_original_2_24/best.model'
+MODEL_1='best.model'
+# MODEL_2='../starter/models_original_2_24/best.model'
 PLAYOUT=1000
 MCTS_PURE=True
 HUMAN=True
@@ -63,7 +63,7 @@ def run():
     width, height = SIZE,SIZE
 
     # if MCTS_PURE:
-    #     player_2 = MCTS_Pure(c_puct=5, n_playout=PLAYOUT)
+    #     player_1 = MCTS_Pure(c_puct=5, n_playout=PLAYOUT)
     #     print ("Benchmarking the following two models:"+MODEL_1+" Pure MCTS")
     # elif HUMAN:
     #     player_2=Human()
@@ -75,12 +75,12 @@ def run():
 
 
     #
-    # policy_1= PolicyValueNet(width, height, model_file=MODEL_1,state_representation_channel = 5)
-    # player_1 = MCTSPlayer(policy_1.policy_value_fn,
-    #                          c_puct=5,
-    #                          n_playout=400)  # set larger n_playout for better performance
+    policy_1= PolicyValueNet(width, height, model_file=MODEL_1,in_channel = 11,n_resnet=1)
+    player_1 = MCTSPlayer(policy_1.policy_value_fn,
+                             c_puct=5,
+                             n_playout=400)  # set larger n_playout for better performance
 
-    player_1 = Human()
+    # player_1 = Human()
     player_2 = Human()
 
 

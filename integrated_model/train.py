@@ -15,10 +15,10 @@ from torch.utils.tensorboard import SummaryWriter
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
-BOARD_SIZE = 4
-N_ROW = 3
+BOARD_SIZE = 6
+N_ROW = 4
 N_RESNET = 1
-IN_CHANNEL = 3
+IN_CHANNEL = 5
 USE_GPU = False
 TRAIN_EPOCH = 100
 SAVE_FREQ = 10
