@@ -1,5 +1,2 @@
-# CS234
-
-Reinforcement Learning Winter 2020
-
-AlphaZero Shogi Ablation Study
+# Project Poster
+![AlphaGomoku: An Ablation Study of AlphaZero on the Game Gomoku](https://github.com/YanpeiTian/CS234/blob/master/poster.jpg)
